@@ -1,0 +1,14 @@
+{
+  "name": "geo-api",
+  "version": "1.0.0",
+  "description": "RESTful API to store and retrieve geo coordinates",
+  "scripts": {
+    "dev": "netlify dev"
+  },
+  "dependencies": {
+    "firebase-admin": "^12.0.0"
+  },
+  "devDependencies": {
+    "netlify-cli": "^17.0.0"
+  }
+}
