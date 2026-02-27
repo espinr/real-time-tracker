@@ -1,6 +1,7 @@
 const { getFirestore } = require("./firebase");
 
-// GET /api/location-get?id=<ID>
+// GET /api/location-get?id=<ID>           → full history (newest first)
+// GET /api/location-get?id=<ID>&last=1    → only the latest reading
 exports.handler = async (event) => {
   const headers = {
     "Content-Type": "application/json",
@@ -9,7 +10,6 @@ exports.handler = async (event) => {
     "Access-Control-Allow-Headers": "Content-Type",
   };
 
-  // Handle CORS preflight
   if (event.httpMethod === "OPTIONS") {
     return { statusCode: 204, headers, body: "" };
   }
@@ -23,6 +23,7 @@ exports.handler = async (event) => {
   }
 
   const id = event.queryStringParameters?.id;
+  const lastOnly = event.queryStringParameters?.last === "1";
 
   if (!id) {
     return {
@@ -34,32 +35,47 @@ exports.handler = async (event) => {
 
   try {
     const db = getFirestore();
-    const doc = await db.collection("locations").doc(id).get();
 
-    if (!doc.exists) {
+    let query = db
+      .collection("locations")
+      .doc(id)
+      .collection("history")
+      .orderBy("timestamp", "desc");
+
+    if (lastOnly) {
+      query = query.limit(1);
+    }
+
+    const snapshot = await query.get();
+
+    if (snapshot.empty) {
       return {
         statusCode: 404,
         headers,
-        body: JSON.stringify({ error: `No location found for id '${id}'.` }),
+        body: JSON.stringify({ error: `No location history found for id '${id}'.` }),
       };
     }
 
-    const data = doc.data();
+    // Serialize each GeoPoint to plain { lat, lon }
+    const entries = snapshot.docs.map((doc) => {
+      const d = doc.data();
+      return {
+        id: d.id,
+        location: {
+          lat: d.location.latitude,
+          lon: d.location.longitude,
+        },
+        timestamp: d.timestamp,
+      };
+    });
 
-    // Serialize Firestore GeoPoint to plain { lat, lon }
     return {
       statusCode: 200,
       headers,
       body: JSON.stringify({
         success: true,
-        data: {
-          id: data.id,
-          location: {
-            lat: data.location.latitude,
-            lon: data.location.longitude,
-          },
-          timestamp: data.timestamp,
-        },
+        count: entries.length,
+        data: lastOnly ? entries[0] : entries,
       }),
     };
   } catch (err) {
