@@ -1,3 +1,8 @@
 node_modules/
 .env
 .netlify/
+*.lock
+-lock.json
+.DS_Store
+dist/
+build/
