@@ -58,6 +58,7 @@ exports.handler = async (event) => {
             lat: data.location.latitude,
             lon: data.location.longitude,
           },
+          accuracy: data.accuracy,
           timestamp: data.timestamp,
         },
       }),

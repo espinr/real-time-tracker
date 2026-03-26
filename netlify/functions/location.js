@@ -35,7 +35,7 @@ exports.handler = async (event) => {
     };
   }
 
-  const { id, lat, lon } = body;
+  const { id, lat, lon, accuracy } = body;
 
   // Validate fields
   if (!id || typeof id !== "string") {
@@ -80,6 +80,7 @@ exports.handler = async (event) => {
     const entry = {
       id,
       location: new admin.firestore.GeoPoint(lat, lon),
+      accuracy,
       timestamp: new Date().toISOString(),
     };
 
@@ -95,6 +96,7 @@ exports.handler = async (event) => {
         data: {
           id,
           location: { lat, lon },
+          accuracy,
           timestamp: entry.timestamp,
         },
       }),
