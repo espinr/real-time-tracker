@@ -65,7 +65,7 @@ exports.handler = async (event) => {
           lat: d.location.latitude,
           lon: d.location.longitude,
         },
-        accuracy: data.accuracy,
+        accuracy: d.accuracy,
         timestamp: d.timestamp,
       };
     });
